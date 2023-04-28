@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Random Image Generator</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"/>
+	<style>
+		
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #f2f2f2;
+		}
+		.container {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+		}
+		.card {
+			margin: 10px;
+			border-radius: 10px;
+			box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+			overflow: hidden;
+			cursor: pointer;
+			transition: transform 0.2s ease-in-out;
+		}
+		.card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+		}
+		.card img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: opacity 0.2s ease-in-out;
+		}
+		.card:hover img {
+			opacity: 0.8;
+		}
+	</style>
+</head>
+<body>
+	<div class="container"></div>
+	<h1 class="f1 headline" id="helloCounter"></h1>
+	<button class="bn bg-yellow navy f2 pa4 shadow-5 b" id="addHelloBtn">Add a hello!</button>
+
+
+</div>
+<script src="./db.js"></script>
+
+	<script>
+		let hellos;
+		const $counter = document.querySelector("#helloCounter");
+        const $addHelloBtn = document.querySelector("#addHelloBtn");
+
+        window.onload = function(e){
+            getHellos();
+            $addHelloBtn.addEventListener('click', addHelloBtn);
+        }
+
+        function getHellos(){
+            fetch('/api').then(result => {
+                return result.json();
+            }).then(result => {
+                hellos = result;
+                $counter.innerHTML = `${hellos.length} Hellos in the DB`
+            }).catch(err => {
+                return err;
+            })
+        }
+		function addHelloBtn(e){
+            const message = {message:"hello"}
+            
+            const options ={
+                method: "POST",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body:JSON.stringify(message)
+            }
+            
+            fetch('/api', options).then(result => {
+                return result.json()
+            }).then(result => {
+                getHellos();
+            }).catch(err =>{
+                return err
+            })
+        }
+		const accessKey = 'rzfxeaiR7cbvj3rtrmDDI38Vp6c_KFiebl_T0T6PGQo'; 
+		const count = 20;
+		const orientation = 'landscape';
+		const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${accessKey}&count=${count}&orientation=${orientation}`;
+
+		const container = document.querySelector('.container');
+
+		async function getImages() {
+			try {
+				const response = await fetch(apiUrl);
+				const images = await response.json();
+				showImages(images);
+			} catch (error) {
+				console.log(error);
+			}
+		}
+
+		function showImages(images) {
+			images.forEach(image => {
+				const card = document.createElement('div');
+				card.classList.add('card');
+				card.innerHTML = `
+					<img src="${image.urls.regular}" alt="${image.alt_description}">
+				`;
+				container.appendChild(card);
+				card.addEventListener('click', () => {
+					window.location.href = image.links.html;
+				});
+			});
+		}
+
+		getImages();
+	</script>
+</body>
+</html>
